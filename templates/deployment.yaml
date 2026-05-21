@@ -1,0 +1,118 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: {{ include "common-helm-chart.fullname" . }}
+  labels:
+    app: {{ include "common-helm-chart.name" . }}
+
+spec:
+  replicas: {{ .Values.replicaCount }}
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: {{ .Values.rollingUpdate.maxUnavailable }}
+      maxSurge: {{ .Values.rollingUpdate.maxSurge }}
+
+  selector:
+    matchLabels:
+      app: {{ include "common-helm-chart.name" . }}
+
+  template:
+    metadata:
+      labels:
+        app: {{ include "common-helm-chart.name" . }}
+
+      annotations:
+{{- toYaml .Values.podAnnotations | nindent 8 }}
+
+    spec:
+
+      serviceAccountName: {{ if .Values.serviceAccount.create }}{{ include "common-helm-chart.fullname" . }}{{ else }}default{{ end }}
+
+      securityContext:
+{{- toYaml .Values.podSecurityContext | nindent 8 }}
+
+{{- if .Values.initContainers }}
+      initContainers:
+{{- toYaml .Values.initContainers | nindent 8 }}
+{{- end }}
+
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+
+          ports:
+            - name: http
+              containerPort: {{ .Values.service.targetPort }}
+              protocol: TCP
+
+          env:
+{{- range $key, $value := .Values.env.normal }}
+            - name: {{ $key }}
+              value: "{{ $value }}"
+{{- end }}
+
+{{- if or .Values.configMap.enabled .Values.secret.enabled }}
+          envFrom:
+{{- if .Values.configMap.enabled }}
+            - configMapRef:
+                name: {{ include "common-helm-chart.fullname" . }}
+{{- end }}
+{{- if .Values.secret.enabled }}
+            - secretRef:
+                name: {{ include "common-helm-chart.fullname" . }}
+{{- end }}
+{{- end }}
+
+          resources:
+{{- toYaml .Values.resources | nindent 12 }}
+
+{{- if .Values.volumeMounts }}
+          volumeMounts:
+{{- toYaml .Values.volumeMounts | nindent 12 }}
+{{- end }}
+
+{{- if .Values.livenessProbe.enabled }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
+{{- end }}
+
+{{- if .Values.readinessProbe.enabled }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: {{ .Values.service.targetPort }}
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
+{{- end }}
+
+{{- if .Values.sidecars }}
+{{- toYaml .Values.sidecars | nindent 8 }}
+{{- end }}
+
+{{- if .Values.nodeSelector }}
+      nodeSelector:
+{{- toYaml .Values.nodeSelector | nindent 8 }}
+{{- end }}
+
+{{- if .Values.affinity }}
+      affinity:
+{{- toYaml .Values.affinity | nindent 8 }}
+{{- end }}
+
+{{- if .Values.tolerations }}
+      tolerations:
+{{- toYaml .Values.tolerations | nindent 8 }}
+{{- end }}
+
+{{- if .Values.volumes }}
+      volumes:
+{{- toYaml .Values.volumes | nindent 8 }}
+{{- end }}

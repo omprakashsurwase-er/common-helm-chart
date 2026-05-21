@@ -1,26 +1,66 @@
 {{- if .Values.autoscaling.enabled }}
-
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
-
 metadata:
   name: {{ include "common-helm-chart.fullname" . }}
-
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    {{- include "common-helm-chart.labels" . | nindent 4 }}
+    {{- with .Values.autoscaling.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.autoscaling.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
-    kind: Deployment
+    kind: {{ .Values.workload.type }}
     name: {{ include "common-helm-chart.fullname" . }}
-
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
-
   metrics:
-    - type: Resource
+    {{- range .Values.autoscaling.metrics }}
+    - type: {{ .type }}
+      {{- if eq .type "Resource" }}
       resource:
-        name: cpu
+        name: {{ .resource.name }}
         target:
-          type: Utilization
-          averageUtilization: {{ .Values.autoscaling.targetCPUUtilizationPercentage }}
-
+          type: {{ .resource.target.type }}
+          {{- if eq .resource.target.type "Utilization" }}
+          averageUtilization: {{ .resource.target.averageUtilization }}
+          {{- else if eq .resource.target.type "AverageValue" }}
+          averageValue: {{ .resource.target.averageValue }}
+          {{- else if eq .resource.target.type "Value" }}
+          value: {{ .resource.target.value }}
+          {{- end }}
+      {{- else if eq .type "Pods" }}
+      pods:
+        metric:
+          name: {{ .pods.metric.name }}
+        target:
+          type: {{ .pods.target.type }}
+          {{- if eq .pods.target.type "AverageValue" }}
+          averageValue: {{ .pods.target.averageValue }}
+          {{- end }}
+      {{- else if eq .type "Object" }}
+      object:
+        metric:
+          name: {{ .object.metric.name }}
+        describedObject:
+          apiVersion: {{ .object.describedObject.apiVersion }}
+          kind: {{ .object.describedObject.kind }}
+          name: {{ .object.describedObject.name }}
+        target:
+          type: {{ .object.target.type }}
+          {{- if eq .object.target.type "Value" }}
+          value: {{ .object.target.value }}
+          {{- end }}
+      {{- end }}
+    {{- end }}
+  {{- if .Values.autoscaling.behavior }}
+  behavior:
+    {{- toYaml .Values.autoscaling.behavior | nindent 4 }}
+  {{- end }}
 {{- end }}

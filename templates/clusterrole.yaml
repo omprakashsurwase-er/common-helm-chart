@@ -1,20 +1,19 @@
-{{- if .Values.configMap.enabled }}
-apiVersion: v1
-kind: ConfigMap
+{{- if .Values.rbac.create }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
 metadata:
   name: {{ include "common-helm-chart.fullname" . }}
-  namespace: {{ .Values.namespace.name }}
   labels:
     {{- include "common-helm-chart.labels" . | nindent 4 }}
-    {{- with .Values.configMap.labels }}
+    {{- with .Values.rbac.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-  {{- with .Values.configMap.annotations }}
+  {{- with .Values.rbac.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-data:
-  {{- with .Values.configMap.data }}
+rules:
+  {{- with .Values.rbac.rules }}
   {{- toYaml . | nindent 2 }}
   {{- end }}
 {{- end }}

@@ -13,6 +13,9 @@ serviceAccount:
   annotations: {}
   name: ""
 
+workload:
+  type: deployment
+  
 podAnnotations: {}
 
 podSecurityContext: {}

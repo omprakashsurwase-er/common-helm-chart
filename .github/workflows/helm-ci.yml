@@ -60,7 +60,7 @@ jobs:
           cat manifests.yaml
 
       - name: Upload generated manifests
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: helm-manifests
           path: manifests.yaml
@@ -114,7 +114,7 @@ jobs:
           echo '```' >> docs/VALUES.md
 
       - name: Upload documentation
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: helm-docs
           path: docs/VALUES.md
@@ -139,7 +139,7 @@ jobs:
           helm package . --destination packaged
 
       - name: Upload packaged chart
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: helm-chart-package
           path: packaged/

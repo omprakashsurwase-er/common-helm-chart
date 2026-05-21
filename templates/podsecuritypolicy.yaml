@@ -1,0 +1,39 @@
+{{- if .Values.podSecurityPolicy.enabled }}
+apiVersion: policy/v1beta1
+kind: PodSecurityPolicy
+metadata:
+  name: {{ include "common-helm-chart.fullname" . }}
+  labels:
+    {{- include "common-helm-chart.labels" . | nindent 4 }}
+    {{- with .Values.podSecurityPolicy.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.podSecurityPolicy.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  privileged: {{ .Values.podSecurityPolicy.privileged }}
+  allowPrivilegeEscalation: {{ .Values.podSecurityPolicy.allowPrivilegeEscalation }}
+  requiredDropCapabilities: {{ .Values.podSecurityPolicy.requiredDropCapabilities }}
+  {{- if .Values.podSecurityPolicy.allowedCapabilities }}
+  allowedCapabilities: {{ .Values.podSecurityPolicy.allowedCapabilities }}
+  {{- end }}
+  volumes:
+    {{- toYaml .Values.podSecurityPolicy.volumes | nindent 4 }}
+  hostNetwork: {{ .Values.podSecurityPolicy.hostNetwork }}
+  hostIPC: {{ .Values.podSecurityPolicy.hostIPC }}
+  hostPID: {{ .Values.podSecurityPolicy.hostPID }}
+  runAsUser:
+    rule: {{ .Values.podSecurityPolicy.runAsUser.rule }}
+    {{- if .Values.podSecurityPolicy.runAsUser.ranges }}
+    ranges: {{ .Values.podSecurityPolicy.runAsUser.ranges }}
+    {{- end }}
+  seLinux:
+    rule: {{ .Values.podSecurityPolicy.seLinux.rule }}
+  supplementalGroups:
+    rule: {{ .Values.podSecurityPolicy.supplementalGroups.rule }}
+  fsGroup:
+    rule: {{ .Values.podSecurityPolicy.fsGroup.rule }}
+  readOnlyRootFilesystem: {{ .Values.podSecurityPolicy.readOnlyRootFilesystem }}
+{{- end }}

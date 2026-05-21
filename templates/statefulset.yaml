@@ -8,93 +8,32 @@ metadata:
   namespace: {{ .Values.namespace | default "default" }}
   labels:
     {{- include "common-helm-chart.labels" . | nindent 4 }}
-    {{- with .Values.statefulset.labels }}
-    {{- toYaml . | nindent 4 }}
-    {{- end }}
-  {{- with .Values.statefulset.annotations }}
-  annotations:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
 
 spec:
   serviceName: {{ include "common-helm-chart.fullname" . }}
 
-  {{- if not (.Values.autoscaling.enabled | default false) }}
   replicas: {{ .Values.replicaCount | default 1 }}
-  {{- end }}
 
   selector:
     matchLabels:
       app: {{ include "common-helm-chart.name" . }}
       release: {{ .Release.Name }}
 
-  updateStrategy:
-    type: {{ .Values.statefulset.updateStrategy.type | default "RollingUpdate" }}
-    {{- if eq (default "RollingUpdate" .Values.statefulset.updateStrategy.type) "RollingUpdate" }}
-    rollingUpdate:
-      partition: {{ .Values.statefulset.updateStrategy.partition | default 0 }}
-    {{- end }}
-
   template:
     metadata:
       labels:
         app: {{ include "common-helm-chart.name" . }}
         release: {{ .Release.Name }}
-        {{- with .Values.podLabels }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
-
-      annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
-        {{- with .Values.podAnnotations }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
 
     spec:
       {{- if .Values.serviceAccount.create | default false }}
       serviceAccountName: {{ include "common-helm-chart.serviceAccountName" . }}
       {{- end }}
 
-      securityContext:
-        {{- toYaml (.Values.podSecurityContext | default dict) | nindent 8 }}
-
-      {{- with .Values.affinity }}
-      affinity:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-
-      {{- with .Values.nodeSelector }}
-      nodeSelector:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-
-      {{- with .Values.tolerations }}
-      tolerations:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-
-      imagePullSecrets:
-        {{- toYaml (.Values.imagePullSecrets | default list) | nindent 8 }}
-
       containers:
         - name: {{ .Chart.Name }}
-
-          securityContext:
-            {{- toYaml (.Values.securityContext | default dict) | nindent 12 }}
-
-          image: "{{ .Values.image.repository | default "nginx" }}:{{ .Values.image.tag | default .Chart.AppVersion | default "latest" }}"
+          image: "{{ .Values.image.repository | default "nginx" }}:{{ .Values.image.tag | default "latest" }}"
           imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
-
-          {{- with .Values.command }}
-          command:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-
-          {{- with .Values.args }}
-          args:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
 
           ports:
             {{- range .Values.containerPorts | default list }}
@@ -103,52 +42,31 @@ spec:
               protocol: {{ .protocol | default "TCP" }}
             {{- end }}
 
-          {{- with .Values.livenessProbe }}
+          {{- if .Values.livenessProbe.enabled | default false }}
           livenessProbe:
-            {{- toYaml . | nindent 12 }}
+            httpGet:
+              path: {{ .Values.livenessProbe.path }}
+              port: 80
+            initialDelaySeconds: {{ .Values.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.livenessProbe.periodSeconds }}
           {{- end }}
 
-          {{- with .Values.readinessProbe }}
+          {{- if .Values.readinessProbe.enabled | default false }}
           readinessProbe:
-            {{- toYaml . | nindent 12 }}
+            httpGet:
+              path: {{ .Values.readinessProbe.path }}
+              port: 80
+            initialDelaySeconds: {{ .Values.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.readinessProbe.periodSeconds }}
           {{- end }}
 
           resources:
-            {{- toYaml (.Values.resources | default dict) | nindent 12 }}
+            {{- toYaml .Values.resources | nindent 12 }}
 
-          {{- with .Values.env }}
           env:
-            {{- range . }}
+            {{- range .Values.env | default list }}
             - name: {{ .name }}
-              {{- if .value }}
               value: {{ .value | quote }}
-              {{- else if .valueFrom }}
-              valueFrom:
-                {{- toYaml .valueFrom | nindent 16 }}
-              {{- end }}
             {{- end }}
-          {{- end }}
-
-          {{- with .Values.envFrom }}
-          envFrom:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-
-          {{- with .Values.volumeMounts }}
-          volumeMounts:
-            {{- toYaml . | nindent 12 }}
-          {{- end }}
-
-      {{- with .Values.volumes }}
-      volumes:
-        {{- toYaml . | nindent 8 }}
-      {{- end }}
-
-      terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
-
-  {{- with .Values.statefulset.volumeClaimTemplates }}
-  volumeClaimTemplates:
-    {{- toYaml . | nindent 4 }}
-  {{- end }}
 
 {{- end }}

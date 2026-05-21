@@ -1,5 +1,7 @@
 replicaCount: 2
 
+namespace: default
+
 image:
   repository: nginx
   tag: latest
@@ -15,7 +17,7 @@ serviceAccount:
 
 workload:
   type: deployment
-  
+
 podAnnotations: {}
 
 podSecurityContext: {}
@@ -53,19 +55,13 @@ autoscaling:
   targetCPUUtilizationPercentage: 70
 
 env:
-  normal:
-    APP_ENV: production
+  - name: APP_ENV
+    value: production
 
-configMap:
-  enabled: true
-  data:
-    LOG_LEVEL: INFO
-
-secret:
-  enabled: true
-  data:
-    username: admin
-    password: password123
+containerPorts:
+  - name: http
+    containerPort: 80
+    protocol: TCP
 
 livenessProbe:
   enabled: true
@@ -87,24 +83,10 @@ affinity: {}
 
 persistence:
   enabled: false
-  storageClass: gp2
-  accessMode: ReadWriteOnce
-  size: 5Gi
-
-pdb:
-  enabled: true
-  minAvailable: 1
-
-networkPolicy:
-  enabled: false
 
 rollingUpdate:
   maxUnavailable: 1
   maxSurge: 1
-
-initContainers: []
-
-sidecars: []
 
 volumeMounts: []
 

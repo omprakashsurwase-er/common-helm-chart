@@ -4,3 +4,4 @@ description: Reusable Common Helm Chart
 type: application
 version: 1.0.0
 appVersion: "1.0"
+icon: https://helm.sh/img/helm.svg

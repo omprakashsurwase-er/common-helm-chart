@@ -1,7 +1,9 @@
 replicaCount: 2
 
-namespace: default
-
+namespace:
+  create: true
+  name: default
+  
 image:
   repository: nginx
   tag: latest

@@ -1,10 +1,11 @@
-{{- $workload := default dict .Values.workload }}
+{{- $workload := .Values.workload | default (dict "type" "deployment") -}}
 {{- if eq (default "deployment" $workload.type) "statefulset" }}
+
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "common-helm-chart.fullname" . }}
-  namespace: {{ .Values.namespace.name }}
+  namespace: {{ .Values.namespace | default "default" }}
   labels:
     {{- include "common-helm-chart.labels" . | nindent 4 }}
     {{- with .Values.statefulset.labels }}
@@ -14,93 +15,110 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+
 spec:
   serviceName: {{ include "common-helm-chart.fullname" . }}
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
+
+  {{- if not (.Values.autoscaling.enabled | default false) }}
+  replicas: {{ .Values.replicaCount | default 1 }}
   {{- end }}
+
   selector:
     matchLabels:
       app: {{ include "common-helm-chart.name" . }}
       release: {{ .Release.Name }}
+
   updateStrategy:
-    type: {{ .Values.statefulset.updateStrategy.type }}
-    {{- if eq .Values.statefulset.updateStrategy.type "RollingUpdate" }}
+    type: {{ .Values.statefulset.updateStrategy.type | default "RollingUpdate" }}
+    {{- if eq (default "RollingUpdate" .Values.statefulset.updateStrategy.type) "RollingUpdate" }}
     rollingUpdate:
-      partition: {{ .Values.statefulset.updateStrategy.partition }}
+      partition: {{ .Values.statefulset.updateStrategy.partition | default 0 }}
     {{- end }}
+
   template:
     metadata:
-      annotations:
-        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
-        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
-        {{- with .Values.podAnnotations }}
-        {{- toYaml . | nindent 8 }}
-        {{- end }}
       labels:
         app: {{ include "common-helm-chart.name" . }}
         release: {{ .Release.Name }}
         {{- with .Values.podLabels }}
         {{- toYaml . | nindent 8 }}
         {{- end }}
+
+      annotations:
+        checksum/config: {{ include (print $.Template.BasePath "/configmap.yaml") . | sha256sum }}
+        checksum/secret: {{ include (print $.Template.BasePath "/secret.yaml") . | sha256sum }}
+        {{- with .Values.podAnnotations }}
+        {{- toYaml . | nindent 8 }}
+        {{- end }}
+
     spec:
-      {{- if .Values.serviceAccount.create }}
+      {{- if .Values.serviceAccount.create | default false }}
       serviceAccountName: {{ include "common-helm-chart.serviceAccountName" . }}
       {{- end }}
+
       securityContext:
-        {{- toYaml .Values.podSecurityContext | nindent 8 }}
-      {{- if .Values.affinity }}
+        {{- toYaml (.Values.podSecurityContext | default dict) | nindent 8 }}
+
+      {{- with .Values.affinity }}
       affinity:
-        {{- toYaml .Values.affinity | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.nodeSelector }}
+
+      {{- with .Values.nodeSelector }}
       nodeSelector:
-        {{- toYaml .Values.nodeSelector | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.tolerations }}
+
+      {{- with .Values.tolerations }}
       tolerations:
-        {{- toYaml .Values.tolerations | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
-      {{- if .Values.dnsPolicy }}
-      dnsPolicy: {{ .Values.dnsPolicy }}
-      {{- end }}
-      {{- if .Values.imagePullSecrets }}
+
       imagePullSecrets:
-        {{- toYaml .Values.imagePullSecrets | nindent 8 }}
-      {{- end }}
+        {{- toYaml (.Values.imagePullSecrets | default list) | nindent 8 }}
+
       containers:
         - name: {{ .Chart.Name }}
+
           securityContext:
-            {{- toYaml .Values.securityContext | nindent 12 }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- if .Values.command }}
+            {{- toYaml (.Values.securityContext | default dict) | nindent 12 }}
+
+          image: "{{ .Values.image.repository | default "nginx" }}:{{ .Values.image.tag | default .Chart.AppVersion | default "latest" }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "IfNotPresent" }}
+
+          {{- with .Values.command }}
           command:
-            {{- toYaml .Values.command | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.args }}
+
+          {{- with .Values.args }}
           args:
-            {{- toYaml .Values.args | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
+
           ports:
-            {{- range .Values.containerPorts }}
+            {{- range .Values.containerPorts | default list }}
             - name: {{ .name }}
               containerPort: {{ .containerPort }}
               protocol: {{ .protocol | default "TCP" }}
             {{- end }}
-          {{- if .Values.livenessProbe }}
+
+          {{- with .Values.livenessProbe }}
           livenessProbe:
-            {{- toYaml .Values.livenessProbe | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.readinessProbe }}
+
+          {{- with .Values.readinessProbe }}
           readinessProbe:
-            {{- toYaml .Values.readinessProbe | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
+
           resources:
-            {{- toYaml .Values.resources | nindent 12 }}
-          {{- if .Values.env }}
+            {{- toYaml (.Values.resources | default dict) | nindent 12 }}
+
+          {{- with .Values.env }}
           env:
-            {{- range .Values.env }}
+            {{- range . }}
             - name: {{ .name }}
               {{- if .value }}
               value: {{ .value | quote }}
@@ -110,21 +128,27 @@ spec:
               {{- end }}
             {{- end }}
           {{- end }}
-          {{- if .Values.envFrom }}
+
+          {{- with .Values.envFrom }}
           envFrom:
-            {{- toYaml .Values.envFrom | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
-          {{- if .Values.volumeMounts }}
+
+          {{- with .Values.volumeMounts }}
           volumeMounts:
-            {{- toYaml .Values.volumeMounts | nindent 12 }}
+            {{- toYaml . | nindent 12 }}
           {{- end }}
-      {{- if .Values.volumes }}
+
+      {{- with .Values.volumes }}
       volumes:
-        {{- toYaml .Values.volumes | nindent 8 }}
+        {{- toYaml . | nindent 8 }}
       {{- end }}
+
       terminationGracePeriodSeconds: {{ .Values.terminationGracePeriodSeconds | default 30 }}
-  {{- if .Values.statefulset.volumeClaimTemplates }}
+
+  {{- with .Values.statefulset.volumeClaimTemplates }}
   volumeClaimTemplates:
-    {{- toYaml .Values.statefulset.volumeClaimTemplates | nindent 4 }}
+    {{- toYaml . | nindent 4 }}
   {{- end }}
+
 {{- end }}

@@ -1,4 +1,4 @@
-{{- if eq (default "deployment" (dig "workload" "type" "deployment" .Values)) "statefulset" }}
+{{- if and (hasKey .Values "workload") (eq .Values.workload.type "statefulset") }}
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:

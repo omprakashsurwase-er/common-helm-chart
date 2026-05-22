@@ -83,7 +83,6 @@ readinessProbe:
     port: 80
   initialDelaySeconds: 10
   periodSeconds: 5
-
 startupProbe: {}
 
 # Resource limits and requests

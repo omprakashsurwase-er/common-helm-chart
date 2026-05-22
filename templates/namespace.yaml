@@ -1,15 +1,23 @@
-{{- if .Values.namespace.create }}
+{{- /*
+Namespace template (safe + production-ready)
+*/ -}}
+
+{{- if and .Values.namespace .Values.namespace.create }}
+
 apiVersion: v1
 kind: Namespace
 metadata:
   name: {{ .Values.namespace.name | default "default" }}
+
   labels:
     {{- include "common-helm-chart.labels" . | nindent 4 }}
     {{- with .Values.namespace.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
+
   {{- with .Values.namespace.annotations }}
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
+
 {{- end }}

@@ -23,9 +23,8 @@ jobs:
       - name: Template check
         run: helm template test . -f values.yaml > /dev/null
 
-
   deploy:
-    runs-on: self-hosted   # 👈 YOUR MAC RUNNER
+    runs-on: self-hosted
     needs: lint
     name: Deploy to Minikube
 
@@ -41,9 +40,16 @@ jobs:
           helm upgrade --install myapp . \
             -f values.yaml \
             --namespace default \
-            --create-namespace
+            --create-namespace \
+            --wait \
+            --timeout 5m \
+            --atomic
 
-      - name: Verify deployment
+      - name: Verify deployment rollout
         run: |
-          kubectl get pods
+          kubectl rollout status deployment/myapp-common-helm-chart --timeout=300s
+
+      - name: Verify Pods and Services
+        run: |
+          kubectl get pods -o wide
           kubectl get svc

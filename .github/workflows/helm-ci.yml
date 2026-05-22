@@ -6,6 +6,7 @@ on:
       - main
       - develop
       - 'feature/**'
+      - brabcgb
     paths:
       - 'Chart.yaml'
       - 'values.yaml'
@@ -16,6 +17,7 @@ on:
       - main
       - develop
       - 'feature/**'
+      - brabcgb
     paths:
       - 'Chart.yaml'
       - 'values.yaml'

@@ -70,14 +70,13 @@ containerPorts:
 
 # Health probes
 livenessProbe:
-  
+  httpGet:
     path: /
     port: 80
   initialDelaySeconds: 30
   periodSeconds: 10
 
 readinessProbe:
-  
   httpGet:
     path: /
     port: 80

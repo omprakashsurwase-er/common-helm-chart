@@ -1,6 +1,6 @@
 # =========================
-# Common Helm Chart Values
-# Production Ready (Fixed)
+# COMMON HELM CHART VALUES
+# FIXED NIL POINTER SAFE VERSION
 # =========================
 
 namespace:
@@ -25,22 +25,40 @@ image:
 
 imagePullSecrets: []
 
-# -------------------------
-# Name overrides
-# -------------------------
 nameOverride: ""
 fullnameOverride: ""
 
 # -------------------------
-# Service Account
+# SERVICE ACCOUNT
 # -------------------------
 serviceAccount:
   create: true
   name: ""
-  automountServiceAccountToken: true
 
 # -------------------------
-# Security Context (FIXED for nginx)
+# RBAC (CRITICAL FIX)
+# -------------------------
+rbac:
+  create: true
+  rules: []
+  roleRules: []
+
+role:
+  create: true
+  rules: []
+
+roleBinding:
+  create: true
+
+clusterRole:
+  create: true
+  rules: []
+
+clusterRoleBinding:
+  create: true
+
+# -------------------------
+# SECURITY CONTEXT
 # -------------------------
 podSecurityContext:
   runAsNonRoot: false
@@ -55,7 +73,7 @@ securityContext:
       - ALL
 
 # -------------------------
-# Container Ports (IMPORTANT)
+# CONTAINER
 # -------------------------
 containerPorts:
   - name: http
@@ -63,7 +81,7 @@ containerPorts:
     protocol: TCP
 
 # -------------------------
-# Probes (FIXED PORT ALIGNMENT)
+# PROBES
 # -------------------------
 livenessProbe:
   httpGet:
@@ -82,7 +100,7 @@ readinessProbe:
 startupProbe: {}
 
 # -------------------------
-# Resources
+# RESOURCES
 # -------------------------
 resources:
   limits:
@@ -93,13 +111,13 @@ resources:
     memory: 256Mi
 
 # -------------------------
-# Environment
+# ENVIRONMENT
 # -------------------------
 env: []
 envFrom: []
 
 # -------------------------
-# Volumes (FIXED NGINX CRASH ISSUE)
+# VOLUMES (NGINX FIX)
 # -------------------------
 volumeMounts:
   - name: nginx-cache
@@ -110,7 +128,7 @@ volumes:
     emptyDir: {}
 
 # -------------------------
-# Service (FIXED PORT MAPPING)
+# SERVICE
 # -------------------------
 service:
   enabled: true
@@ -124,43 +142,34 @@ service:
       protocol: TCP
 
 # -------------------------
-# Ingress (disabled)
+# INGRESS
 # -------------------------
 ingress:
   enabled: false
 
 # -------------------------
-# Autoscaling
+# AUTOSCALING
 # -------------------------
 autoscaling:
   enabled: false
 
 # -------------------------
-# Pod Disruption Budget
-# -------------------------
-podDisruptionBudget:
-  enabled: false
-
-# -------------------------
-# Network Policy
+# NETWORK POLICY
 # -------------------------
 networkPolicy:
   enabled: false
 
 # -------------------------
-# Node Scheduling
+# SCHEDULING
 # -------------------------
-affinity: {}
 nodeSelector: {}
+affinity: {}
 tolerations: []
 
-# -------------------------
-# Lifecycle
-# -------------------------
 terminationGracePeriodSeconds: 30
 
 # -------------------------
-# ConfigMap / Secret
+# CONFIG / SECRET
 # -------------------------
 configMap:
   enabled: true

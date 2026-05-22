@@ -1,43 +1,21 @@
-# =========================
-# COMMON HELM CHART VALUES
-# FIXED NIL POINTER SAFE VERSION
-# =========================
-
 namespace:
   create: false
   name: default
 
-# -------------------------
-# Workload
-# -------------------------
 workload:
   type: Deployment
 
 replicaCount: 1
 
-# -------------------------
-# Image
-# -------------------------
 image:
   repository: nginx
   tag: "latest"
   pullPolicy: IfNotPresent
 
-imagePullSecrets: []
-
-nameOverride: ""
-fullnameOverride: ""
-
-# -------------------------
-# SERVICE ACCOUNT
-# -------------------------
 serviceAccount:
   create: true
   name: ""
 
-# -------------------------
-# RBAC (CRITICAL FIX)
-# -------------------------
 rbac:
   create: true
   rules: []
@@ -57,9 +35,6 @@ clusterRole:
 clusterRoleBinding:
   create: true
 
-# -------------------------
-# SECURITY CONTEXT
-# -------------------------
 podSecurityContext:
   runAsNonRoot: false
   runAsUser: 0
@@ -72,17 +47,10 @@ securityContext:
     drop:
       - ALL
 
-# -------------------------
-# CONTAINER
-# -------------------------
 containerPorts:
   - name: http
     containerPort: 8080
-    protocol: TCP
 
-# -------------------------
-# PROBES
-# -------------------------
 livenessProbe:
   httpGet:
     path: /
@@ -97,11 +65,6 @@ readinessProbe:
   initialDelaySeconds: 10
   periodSeconds: 5
 
-startupProbe: {}
-
-# -------------------------
-# RESOURCES
-# -------------------------
 resources:
   limits:
     cpu: 500m
@@ -110,15 +73,6 @@ resources:
     cpu: 250m
     memory: 256Mi
 
-# -------------------------
-# ENVIRONMENT
-# -------------------------
-env: []
-envFrom: []
-
-# -------------------------
-# VOLUMES (NGINX FIX)
-# -------------------------
 volumeMounts:
   - name: nginx-cache
     mountPath: /var/cache/nginx
@@ -127,9 +81,6 @@ volumes:
   - name: nginx-cache
     emptyDir: {}
 
-# -------------------------
-# SERVICE
-# -------------------------
 service:
   enabled: true
   type: ClusterIP
@@ -139,38 +90,22 @@ service:
     - name: http
       port: 80
       targetPort: 8080
-      protocol: TCP
 
-# -------------------------
-# INGRESS
-# -------------------------
 ingress:
   enabled: false
 
-# -------------------------
-# AUTOSCALING
-# -------------------------
 autoscaling:
   enabled: false
 
-# -------------------------
-# NETWORK POLICY
-# -------------------------
 networkPolicy:
   enabled: false
 
-# -------------------------
-# SCHEDULING
-# -------------------------
 nodeSelector: {}
 affinity: {}
 tolerations: []
 
 terminationGracePeriodSeconds: 30
 
-# -------------------------
-# CONFIG / SECRET
-# -------------------------
 configMap:
   enabled: true
   data: {}

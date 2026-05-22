@@ -2,7 +2,7 @@
 Namespace template (safe + production-ready)
 */ -}}
 
-{{- if and .Release.Namespace .Release.Namespace.create }}
+{{- if and .Release.Namespace .Values.namespace.create }}
 
 apiVersion: v1
 kind: Namespace

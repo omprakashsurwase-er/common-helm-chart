@@ -1,6 +1,15 @@
 # Default values for common-helm-chart
 # Reusable Common Helm Chart - Production Ready
 
+
+volumeMounts:
+  - name: nginx-cache
+    mountPath: /var/cache/nginx
+
+volumes:
+  - name: nginx-cache
+    emptyDir: {}
+    
 # Global namespace settings
 namespace:
   create: false

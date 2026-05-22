@@ -47,9 +47,9 @@ rbac:
 # Pod Security Context
 podSecurityContext:
   runAsNonRoot: false
-  runAsUser: 0
-  runAsGroup: 0
-  fsGroup: 0
+  runAsUser: 101
+  runAsGroup: 101
+  fsGroup: 101
 
 # Container Security Context
 securityContext:
@@ -83,6 +83,7 @@ readinessProbe:
     port: 80
   initialDelaySeconds: 10
   periodSeconds: 5
+
 startupProbe: {}
 
 # Resource limits and requests
@@ -95,9 +96,7 @@ resources:
     memory: 256Mi
 
 # Environment variables
-env:
-  - name: NGINX_CACHE_DISABLE
-    value: "true"
+env: []
 
 # Environment from ConfigMap/Secret
 envFrom: []
@@ -147,13 +146,11 @@ service:
   sessionAffinity: ""
   sessionAffinityTimeout: ""
   publishNotReadyAddresses: false
-
   ports:
     - name: http
       port: 80
       targetPort: 80
       protocol: TCP
-
   labels: {}
   annotations: {}
 
@@ -170,7 +167,6 @@ ingress:
           pathType: Prefix
           port:
             name: http
-
   tls: []
 
 # Deployment specific settings
@@ -179,7 +175,6 @@ deployment:
     type: RollingUpdate
     maxSurge: 1
     maxUnavailable: 0
-
   labels: {}
   annotations: {}
 
@@ -187,10 +182,8 @@ deployment:
 statefulset:
   serviceName: ""
   podManagementPolicy: OrderedReady
-
   updateStrategy:
     type: RollingUpdate
-
   labels: {}
   annotations: {}
 
@@ -199,10 +192,8 @@ autoscaling:
   enabled: false
   minReplicas: 1
   maxReplicas: 10
-
   labels: {}
   annotations: {}
-
   metrics:
     - type: Resource
       resource:
@@ -210,7 +201,6 @@ autoscaling:
         target:
           type: Utilization
           averageUtilization: 80
-
   behavior: {}
 
 # Pod Disruption Budget
@@ -218,23 +208,18 @@ podDisruptionBudget:
   enabled: false
   minAvailable: 1
   maxUnavailable: ""
-
   unhealthyPodEvictionPolicy: ""
-
   labels: {}
   annotations: {}
 
 # Network Policy
 networkPolicy:
   enabled: false
-
   policyTypes:
     - Ingress
     - Egress
-
   ingress: []
   egress: []
-
   labels: {}
   annotations: {}
 
@@ -243,12 +228,9 @@ podSecurityPolicy:
   enabled: false
   privileged: false
   allowPrivilegeEscalation: false
-
   requiredDropCapabilities:
     - ALL
-
   allowedCapabilities: []
-
   volumes:
     - configMap
     - emptyDir
@@ -256,26 +238,19 @@ podSecurityPolicy:
     - secret
     - downwardAPI
     - persistentVolumeClaim
-
   hostNetwork: false
   hostIPC: false
   hostPID: false
-
   runAsUser:
     rule: MustRunAsNonRoot
     ranges: []
-
   seLinux:
     rule: MustRunAs
-
   supplementalGroups:
     rule: RunAsAny
-
   fsGroup:
     rule: RunAsAny
-
   readOnlyRootFilesystem: false
-
   labels: {}
   annotations: {}
 
@@ -283,7 +258,6 @@ podSecurityPolicy:
 configMap:
   enabled: true
   data: {}
-
   labels: {}
   annotations: {}
 
@@ -291,10 +265,8 @@ configMap:
 secret:
   enabled: true
   type: Opaque
-
   data: {}
   stringData: {}
-
   labels: {}
   annotations: {}
 
@@ -332,15 +304,11 @@ shareProcessNamespace: false
 persistence:
   enabled: false
   storageClassName: ""
-
   accessModes:
     - ReadWriteOnce
-
   size: 10Gi
-
   selector: {}
   volumeName: ""
-
   labels: {}
   annotations: {}
 
@@ -348,17 +316,14 @@ persistence:
 clusterRole:
   create: true
   name: ""
-
   labels: {}
   annotations: {}
-
   rules: []
 
 # Cluster Role Binding configuration
 clusterRoleBinding:
   create: true
   name: ""
-
   labels: {}
   annotations: {}
 
@@ -366,17 +331,14 @@ clusterRoleBinding:
 role:
   create: true
   name: ""
-
   labels: {}
   annotations: {}
-
   rules: []
 
 # Role Binding configuration
 roleBinding:
   create: true
   name: ""
-
   labels: {}
   annotations: {}
 
@@ -386,6 +348,5 @@ priorityClass:
   name: ""
   value: 1000
   globalDefault: false
-
   labels: {}
   annotations: {}

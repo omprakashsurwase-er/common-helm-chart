@@ -1,24 +1,6 @@
 # Default values for common-helm-chart
 # Reusable Common Helm Chart - Production Ready
 
-
-volumeMounts:
-  - name: nginx-cache
-    mountPath: /var/cache/nginx
-
-volumeMounts:
-  - name: nginx-cache
-    mountPath: /var/cache/nginx
-
-volumes:
-  - name: nginx-cache
-    emptyDir: {}
-
-securityContext:
-  allowPrivilegeEscalation: false
-  readOnlyRootFilesystem: false
-
-    
 # Global namespace settings
 namespace:
   create: false
@@ -28,9 +10,9 @@ namespace:
 
 # Workload configuration
 workload:
-  type: Deployment  # Options: Deployment, StatefulSet, DaemonSet, Job, CronJob
+  type: Deployment
 
-# Replica count (ignored if autoscaling is enabled)
+# Replica count
 replicaCount: 1
 
 # Image configuration
@@ -64,9 +46,10 @@ rbac:
 
 # Pod Security Context
 podSecurityContext:
-  runAsNonRoot: true
-  runAsUser: 1000
-  fsGroup: 1000
+  runAsNonRoot: false
+  runAsUser: 0
+  runAsGroup: 0
+  fsGroup: 0
 
 # Container Security Context
 securityContext:
@@ -83,7 +66,7 @@ args: []
 # Container ports
 containerPorts:
   - name: http
-    containerPort: 8080
+    containerPort: 80
     protocol: TCP
 
 # Health probes
@@ -121,10 +104,26 @@ env:
 envFrom: []
 
 # Volume mounts
-volumeMounts: []
+volumeMounts:
+  - name: nginx-cache
+    mountPath: /var/cache/nginx
+
+  - name: nginx-run
+    mountPath: /var/run
+
+  - name: nginx-tmp
+    mountPath: /tmp
 
 # Volumes
-volumes: []
+volumes:
+  - name: nginx-cache
+    emptyDir: {}
+
+  - name: nginx-run
+    emptyDir: {}
+
+  - name: nginx-tmp
+    emptyDir: {}
 
 # Lifecycle hooks
 lifecycle: {}
@@ -140,7 +139,7 @@ service:
   enabled: true
   type: ClusterIP
   port: 80
-  targetPort: 8080
+  targetPort: 80
   clusterIP: ""
   loadBalancerIP: ""
   loadBalancerSourceRanges: []
@@ -149,11 +148,13 @@ service:
   sessionAffinity: ""
   sessionAffinityTimeout: ""
   publishNotReadyAddresses: false
+
   ports:
     - name: http
       port: 80
-      targetPort: 8080
+      targetPort: 80
       protocol: TCP
+
   labels: {}
   annotations: {}
 
@@ -170,10 +171,8 @@ ingress:
           pathType: Prefix
           port:
             name: http
+
   tls: []
-    # - secretName: example-tls
-    #   hosts:
-    #     - example.com
 
 # Deployment specific settings
 deployment:
@@ -181,6 +180,7 @@ deployment:
     type: RollingUpdate
     maxSurge: 1
     maxUnavailable: 0
+
   labels: {}
   annotations: {}
 
@@ -188,8 +188,10 @@ deployment:
 statefulset:
   serviceName: ""
   podManagementPolicy: OrderedReady
+
   updateStrategy:
     type: RollingUpdate
+
   labels: {}
   annotations: {}
 
@@ -198,8 +200,10 @@ autoscaling:
   enabled: false
   minReplicas: 1
   maxReplicas: 10
+
   labels: {}
   annotations: {}
+
   metrics:
     - type: Resource
       resource:
@@ -207,6 +211,7 @@ autoscaling:
         target:
           type: Utilization
           averageUtilization: 80
+
   behavior: {}
 
 # Pod Disruption Budget
@@ -214,18 +219,23 @@ podDisruptionBudget:
   enabled: false
   minAvailable: 1
   maxUnavailable: ""
+
   unhealthyPodEvictionPolicy: ""
+
   labels: {}
   annotations: {}
 
 # Network Policy
 networkPolicy:
   enabled: false
+
   policyTypes:
     - Ingress
     - Egress
+
   ingress: []
   egress: []
+
   labels: {}
   annotations: {}
 
@@ -234,9 +244,12 @@ podSecurityPolicy:
   enabled: false
   privileged: false
   allowPrivilegeEscalation: false
+
   requiredDropCapabilities:
     - ALL
+
   allowedCapabilities: []
+
   volumes:
     - configMap
     - emptyDir
@@ -244,19 +257,26 @@ podSecurityPolicy:
     - secret
     - downwardAPI
     - persistentVolumeClaim
+
   hostNetwork: false
   hostIPC: false
   hostPID: false
+
   runAsUser:
     rule: MustRunAsNonRoot
     ranges: []
+
   seLinux:
     rule: MustRunAs
+
   supplementalGroups:
     rule: RunAsAny
+
   fsGroup:
     rule: RunAsAny
+
   readOnlyRootFilesystem: false
+
   labels: {}
   annotations: {}
 
@@ -264,6 +284,7 @@ podSecurityPolicy:
 configMap:
   enabled: true
   data: {}
+
   labels: {}
   annotations: {}
 
@@ -271,8 +292,10 @@ configMap:
 secret:
   enabled: true
   type: Opaque
+
   data: {}
   stringData: {}
+
   labels: {}
   annotations: {}
 
@@ -310,11 +333,15 @@ shareProcessNamespace: false
 persistence:
   enabled: false
   storageClassName: ""
+
   accessModes:
     - ReadWriteOnce
+
   size: 10Gi
+
   selector: {}
   volumeName: ""
+
   labels: {}
   annotations: {}
 
@@ -322,14 +349,17 @@ persistence:
 clusterRole:
   create: true
   name: ""
+
   labels: {}
   annotations: {}
+
   rules: []
 
 # Cluster Role Binding configuration
 clusterRoleBinding:
   create: true
   name: ""
+
   labels: {}
   annotations: {}
 
@@ -337,14 +367,17 @@ clusterRoleBinding:
 role:
   create: true
   name: ""
+
   labels: {}
   annotations: {}
+
   rules: []
 
 # Role Binding configuration
 roleBinding:
   create: true
   name: ""
+
   labels: {}
   annotations: {}
 
@@ -354,5 +387,6 @@ priorityClass:
   name: ""
   value: 1000
   globalDefault: false
+
   labels: {}
   annotations: {}

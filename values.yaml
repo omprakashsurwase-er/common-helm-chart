@@ -1,1 +1,338 @@
+# Default values for common-helm-chart
+# Reusable Common Helm Chart - Production Ready
 
+# Global namespace settings
+namespace:
+  create: false
+  name: default
+  labels: {}
+  annotations: {}
+
+# Workload configuration
+workload:
+  type: Deployment  # Options: Deployment, StatefulSet, DaemonSet, Job, CronJob
+
+# Replica count (ignored if autoscaling is enabled)
+replicaCount: 1
+
+# Image configuration
+image:
+  repository: nginx
+  pullPolicy: IfNotPresent
+  tag: "latest"
+
+# Image pull secrets
+imagePullSecrets: []
+
+# Name overrides
+nameOverride: ""
+fullnameOverride: ""
+
+# Service Account configuration
+serviceAccount:
+  create: true
+  name: ""
+  annotations: {}
+  labels: {}
+  automountServiceAccountToken: true
+
+# RBAC configuration
+rbac:
+  create: true
+  labels: {}
+  annotations: {}
+  rules: []
+  roleRules: []
+
+# Pod Security Context
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 1000
+  fsGroup: 1000
+
+# Container Security Context
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+# Container command and arguments
+command: []
+args: []
+
+# Container ports
+containerPorts:
+  - name: http
+    containerPort: 8080
+    protocol: TCP
+
+# Health probes
+livenessProbe:
+  enabled: false
+  path: /health
+  initialDelaySeconds: 30
+  periodSeconds: 10
+
+readinessProbe:
+  enabled: false
+  path: /ready
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+startupProbe: {}
+
+# Resource limits and requests
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Environment variables
+env: []
+  # - name: LOG_LEVEL
+  #   value: "info"
+
+# Environment from ConfigMap/Secret
+envFrom: []
+
+# Volume mounts
+volumeMounts: []
+
+# Volumes
+volumes: []
+
+# Lifecycle hooks
+lifecycle: {}
+
+# Pod annotations
+podAnnotations: {}
+
+# Pod labels
+podLabels: {}
+
+# Service configuration
+service:
+  enabled: true
+  type: ClusterIP
+  port: 80
+  targetPort: 8080
+  clusterIP: ""
+  loadBalancerIP: ""
+  loadBalancerSourceRanges: []
+  externalName: ""
+  externalIPs: []
+  sessionAffinity: ""
+  sessionAffinityTimeout: ""
+  publishNotReadyAddresses: false
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+  labels: {}
+  annotations: {}
+
+# Ingress configuration
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  labels: {}
+  hosts:
+    - host: example.com
+      paths:
+        - path: /
+          pathType: Prefix
+          port:
+            name: http
+  tls: []
+    # - secretName: example-tls
+    #   hosts:
+    #     - example.com
+
+# Deployment specific settings
+deployment:
+  strategy:
+    type: RollingUpdate
+    maxSurge: 1
+    maxUnavailable: 0
+  labels: {}
+  annotations: {}
+
+# StatefulSet specific settings
+statefulset:
+  serviceName: ""
+  podManagementPolicy: OrderedReady
+  updateStrategy:
+    type: RollingUpdate
+  labels: {}
+  annotations: {}
+
+# Horizontal Pod Autoscaler (HPA)
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 10
+  labels: {}
+  annotations: {}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 80
+  behavior: {}
+
+# Pod Disruption Budget
+podDisruptionBudget:
+  enabled: false
+  minAvailable: 1
+  maxUnavailable: ""
+  unhealthyPodEvictionPolicy: ""
+  labels: {}
+  annotations: {}
+
+# Network Policy
+networkPolicy:
+  enabled: false
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress: []
+  egress: []
+  labels: {}
+  annotations: {}
+
+# Pod Security Policy
+podSecurityPolicy:
+  enabled: false
+  privileged: false
+  allowPrivilegeEscalation: false
+  requiredDropCapabilities:
+    - ALL
+  allowedCapabilities: []
+  volumes:
+    - configMap
+    - emptyDir
+    - projected
+    - secret
+    - downwardAPI
+    - persistentVolumeClaim
+  hostNetwork: false
+  hostIPC: false
+  hostPID: false
+  runAsUser:
+    rule: MustRunAsNonRoot
+    ranges: []
+  seLinux:
+    rule: MustRunAs
+  supplementalGroups:
+    rule: RunAsAny
+  fsGroup:
+    rule: RunAsAny
+  readOnlyRootFilesystem: false
+  labels: {}
+  annotations: {}
+
+# ConfigMap
+configMap:
+  enabled: true
+  data: {}
+  labels: {}
+  annotations: {}
+
+# Secret
+secret:
+  enabled: true
+  type: Opaque
+  data: {}
+  stringData: {}
+  labels: {}
+  annotations: {}
+
+# Node affinity
+affinity: {}
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Priority class name
+priorityClassName: ""
+
+# DNS settings
+dnsPolicy: ""
+dnsConfig: {}
+
+# Host settings
+hostNetwork: false
+hostPID: false
+hostIPC: false
+
+# Init containers
+initContainers: []
+
+# Termination grace period
+terminationGracePeriodSeconds: 30
+
+# Share process namespace
+shareProcessNamespace: false
+
+# Persistence / Storage
+persistence:
+  enabled: false
+  storageClassName: ""
+  accessModes:
+    - ReadWriteOnce
+  size: 10Gi
+  selector: {}
+  volumeName: ""
+  labels: {}
+  annotations: {}
+
+# Cluster Role configuration
+clusterRole:
+  create: true
+  name: ""
+  labels: {}
+  annotations: {}
+  rules: []
+
+# Cluster Role Binding configuration
+clusterRoleBinding:
+  create: true
+  name: ""
+  labels: {}
+  annotations: {}
+
+# Role configuration
+role:
+  create: true
+  name: ""
+  labels: {}
+  annotations: {}
+  rules: []
+
+# Role Binding configuration
+roleBinding:
+  create: true
+  name: ""
+  labels: {}
+  annotations: {}
+
+# Priority Class configuration
+priorityClass:
+  enabled: false
+  name: ""
+  value: 1000
+  globalDefault: false
+  labels: {}
+  annotations: {}

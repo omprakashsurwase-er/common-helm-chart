@@ -104,9 +104,9 @@ resources:
     memory: 256Mi
 
 # Environment variables
-env: []
-  # - name: LOG_LEVEL
-  #   value: "info"
+env:
+  - name: NGINX_CACHE_DISABLE
+    value: "true"
 
 # Environment from ConfigMap/Secret
 envFrom: []

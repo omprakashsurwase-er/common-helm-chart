@@ -70,13 +70,13 @@ containerPorts:
 
 # Health probes
 livenessProbe:
-  enabled: false
+  enabled: true
   path: /health
   initialDelaySeconds: 30
   periodSeconds: 10
 
 readinessProbe:
-  enabled: false
+  enabled: true
   path: /ready
   initialDelaySeconds: 5
   periodSeconds: 5

@@ -1,0 +1,145 @@
+# Simple Web App Example - 20 Minute Service Demo
+# This configuration deploys a simple Node.js web server that responds on http://localhost:8080
+
+# Deploy using:
+# helm install simple-app ./ -f examples/simple-web-app.yaml
+
+workload:
+  type: Deployment
+
+replicaCount: 1
+
+image:
+  # Using a simple Node.js HTTP server image
+  repository: node
+  tag: "18-alpine"
+  pullPolicy: IfNotPresent
+
+# Override the command to start a simple HTTP server
+command: 
+  - /bin/sh
+  - -c
+  - |
+    cat > /tmp/server.js << 'EOF'
+    const http = require('http');
+    const os = require('os');
+    
+    const server = http.createServer((req, res) => {
+      const hostname = os.hostname();
+      const timestamp = new Date().toISOString();
+      
+      res.writeHead(200, {'Content-Type': 'text/html'});
+      res.end(`
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <title>Simple Web App Demo</title>
+            <style>
+                body { 
+                    font-family: Arial, sans-serif; 
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    margin: 0;
+                    padding: 0;
+                    min-height: 100vh;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                }
+                .container {
+                    background: white;
+                    padding: 40px;
+                    border-radius: 10px;
+                    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+                    text-align: center;
+                }
+                h1 { color: #667eea; margin: 0 0 20px 0; }
+                .info { 
+                    background: #f0f0f0; 
+                    padding: 15px; 
+                    border-radius: 5px;
+                    margin: 10px 0;
+                    font-family: monospace;
+                }
+                .status { color: #27ae60; font-weight: bold; }
+                .timer { color: #e74c3c; font-size: 18px; font-weight: bold; margin-top: 20px; }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>✅ Simple Web App Running!</h1>
+                <p>Deployed using Helm Chart</p>
+                
+                <div class="info">
+                    <strong>Pod Hostname:</strong><br>${hostname}
+                </div>
+                
+                <div class="info">
+                    <strong>Timestamp:</strong><br>${timestamp}
+                </div>
+                
+                <div class="status">
+                    ✓ Service is Running
+                </div>
+                
+                <div class="timer">
+                    ⏱️ 20-Minute Demo Active
+                </div>
+            </div>
+        </body>
+        </html>
+      `);
+    });
+    
+    const PORT = 8080;
+    server.listen(PORT, () => {
+      console.log(`Server running at http://localhost:${PORT}/`);
+    });
+    
+    // Auto-shutdown after 20 minutes (1200 seconds)
+    setTimeout(() => {
+      console.log('20-minute demo period ended. Shutting down...');
+      server.close();
+      process.exit(0);
+    }, 1200000);
+    EOF
+    
+    node /tmp/server.js
+
+service:
+  enabled: true
+  type: NodePort
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      nodePort: 30080
+
+# Health checks
+livenessProbe:
+  httpGet:
+    path: /
+    port: 8080
+  initialDelaySeconds: 10
+  periodSeconds: 10
+  
+readinessProbe:
+  httpGet:
+    path: /
+    port: 8080
+  initialDelaySeconds: 5
+  periodSeconds: 5
+
+# Resource limits
+resources:
+  requests:
+    cpu: 100m
+    memory: 128Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
+
+# Auto-scaling (optional)
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3

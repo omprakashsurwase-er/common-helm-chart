@@ -3,7 +3,7 @@ apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
   name: {{ include "common-helm-chart.fullname" . }}
-  namespace: {{ .Values.namespace.name }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "common-helm-chart.labels" . | nindent 4 }}
     {{- with .Values.rbac.labels }}
@@ -20,5 +20,5 @@ roleRef:
 subjects:
   - kind: ServiceAccount
     name: {{ include "common-helm-chart.serviceAccountName" . }}
-    namespace: {{ .Values.namespace.name }}
+    namespace: {{ .Release.Namespace }}
 {{- end }}

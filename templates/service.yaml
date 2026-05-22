@@ -4,7 +4,7 @@ apiVersion: v1
 kind: Service
 metadata:
   name: {{ include "common-helm-chart.fullname" . }}
-  namespace: {{ .Values.namespace | default "default" }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "common-helm-chart.labels" . | nindent 4 }}
     {{- with .Values.service.labels }}

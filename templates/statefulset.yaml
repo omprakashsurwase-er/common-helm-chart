@@ -5,7 +5,7 @@ apiVersion: apps/v1
 kind: StatefulSet
 metadata:
   name: {{ include "common-helm-chart.fullname" . }}
-  namespace: {{ .Values.namespace | default "default" }}
+  namespace: {{ .Release.Namespace }}
   labels:
     {{- include "common-helm-chart.labels" . | nindent 4 }}
 

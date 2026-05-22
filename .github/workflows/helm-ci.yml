@@ -1,154 +1,49 @@
-name: Helm Chart CI
+name: Helm Deploy to Minikube
 
 on:
   push:
     branches:
       - main
-      - develop
-      - 'feature/**'
-      - brabcgb
-    paths:
-      - 'Chart.yaml'
-      - 'values.yaml'
-      - 'templates/**'
-      - '.github/workflows/helm-ci.yml'
-  pull_request:
-    branches:
-      - main
-      - develop
-      - 'feature/**'
-      - brabcgb
-    paths:
-      - 'Chart.yaml'
-      - 'values.yaml'
-      - 'templates/**'
 
 jobs:
   lint:
     runs-on: ubuntu-latest
-    name: Lint Helm Chart
+    name: Helm Lint & Validate
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Helm
+      - name: Setup Helm
         uses: azure/setup-helm@v3
-        with:
-          version: 'latest'
 
-      - name: Lint Helm chart
-        run: |
-          helm lint . --strict
+      - name: Lint Helm Chart
+        run: helm lint . --strict
 
-      - name: Validate Helm chart values
-        run: |
-          helm template test . --values values.yaml > /dev/null
+      - name: Template check
+        run: helm template test . -f values.yaml > /dev/null
 
-  test:
-    runs-on: ubuntu-latest
-    name: Test Helm Chart
+
+  deploy:
+    runs-on: self-hosted   # 👈 YOUR MAC RUNNER
     needs: lint
+    name: Deploy to Minikube
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: 'latest'
+      - name: Check cluster connection
+        run: kubectl get nodes
 
-      - name: Generate Helm manifests
+      - name: Helm Upgrade/Install
         run: |
-          helm template release-name . --values values.yaml > manifests.yaml
-          echo "=== Generated Manifests ==="
-          cat manifests.yaml
+          helm upgrade --install myapp . \
+            -f values.yaml \
+            --namespace default \
+            --create-namespace
 
-      - name: Upload generated manifests
-        uses: actions/upload-artifact@v4
-        with:
-          name: helm-manifests
-          path: manifests.yaml
-
-  security:
-    runs-on: ubuntu-latest
-    name: Security Checks
-    needs: lint
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: 'latest'
-
-      - name: Check for insecure defaults
+      - name: Verify deployment
         run: |
-          echo "Checking for security issues in values.yaml..."
-          if grep -q "password123" values.yaml; then
-            echo "⚠️  WARNING: Found hardcoded password in values.yaml"
-          fi
-          if grep -q "pullPolicy: IfNotPresent" values.yaml; then
-            echo "✓ Image pull policy is set appropriately"
-          fi
-          if grep -q 'tag: latest' values.yaml; then
-            echo "⚠️  WARNING: Using 'latest' tag for image - consider using specific versions"
-          fi
-
-  docs:
-    runs-on: ubuntu-latest
-    name: Generate Documentation
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: 'latest'
-
-      - name: Generate Helm documentation
-        run: |
-          mkdir -p docs
-          echo "# Helm Chart Configuration Reference" > docs/VALUES.md
-          echo "" >> docs/VALUES.md
-          echo "## Default Values" >> docs/VALUES.md
-          echo '```yaml' >> docs/VALUES.md
-          cat values.yaml >> docs/VALUES.md
-          echo '```' >> docs/VALUES.md
-
-      - name: Upload documentation
-        uses: actions/upload-artifact@v4
-        with:
-          name: helm-docs
-          path: docs/VALUES.md
-
-  package:
-    runs-on: ubuntu-latest
-    name: Package Helm Chart
-    needs: [lint, test, security]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set up Helm
-        uses: azure/setup-helm@v3
-        with:
-          version: 'latest'
-
-      - name: Package Helm chart
-        run: |
-          mkdir -p packaged
-          helm package . --destination packaged
-
-      - name: Upload packaged chart
-        uses: actions/upload-artifact@v4
-        with:
-          name: helm-chart-package
-          path: packaged/
-
-      - name: Display package info
-        run: |
-          echo "=== Packaged Helm Chart ===" 
-          ls -lah packaged/
+          kubectl get pods
+          kubectl get svc

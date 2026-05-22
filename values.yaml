@@ -6,14 +6,13 @@ volumeMounts:
   - name: nginx-cache
     mountPath: /var/cache/nginx
 
+volumeMounts:
+  - name: nginx-cache
+    mountPath: /var/cache/nginx
+
 volumes:
   - name: nginx-cache
     emptyDir: {}
-
-podSecurityContext:
-  runAsNonRoot: true
-  runAsUser: 101
-  fsGroup: 101
 
 securityContext:
   allowPrivilegeEscalation: false
